@@ -1,17 +1,22 @@
-using Catalog.API.Products.CreateProduct;
+using BuildingBlocks.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddCarter(null, cfg =>
 {
-    cfg.WithModules(typeof(CreateProductEndpoint));
+    cfg.LoadAllModules();
 });
 
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
 });
+
+builder.Services.AddMarten(opt =>
+{
+    opt.Connection(builder.Configuration.GetConnectionString("Database")!);
+}).UseLightweightSessions();
 
 var app = builder.Build();
 
