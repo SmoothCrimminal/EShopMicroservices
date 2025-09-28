@@ -9,21 +9,17 @@ namespace Catalog.API.Products.GetProductById
     internal class GetProductByIdQueryHandler : IQueryHandler<GetProductByIdQuery, GetProductByIdResult>
     {
         private readonly IDocumentSession _documentSession;
-        private readonly ILogger<GetProductByIdQueryHandler> _logger;
 
-        public GetProductByIdQueryHandler(IDocumentSession documentSession, ILogger<GetProductByIdQueryHandler> logger)
+        public GetProductByIdQueryHandler(IDocumentSession documentSession)
         {
             _documentSession = documentSession;
-            _logger = logger;
         }
 
         public async Task<GetProductByIdResult> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("GetProductByIdQueryHandler.Handle called with {@Query}", query);
-
             var product = await _documentSession.LoadAsync<Product>(query.Id, cancellationToken);
             if (product is null)
-                throw new ProductNotFoundException();
+                throw new ProductNotFoundException(query.Id);
 
             return new GetProductByIdResult(product);
         }
