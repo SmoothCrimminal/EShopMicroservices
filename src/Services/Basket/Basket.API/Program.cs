@@ -1,11 +1,14 @@
 using Basket.API.Data;
 using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.Extensions;
+using Discount.Grpc;
 using HealthChecks.UI.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+// Application Services
 builder.Services.AddCarter(null, cfg =>
 {
     cfg.LoadAllModules();
@@ -18,6 +21,7 @@ builder.Services.AddMediatR(cfg =>
     cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
 });
 
+// Data Services
 builder.Services.AddMarten(cfg =>
 {
     cfg.Connection(builder.Configuration.GetConnectionString("Database")!);
@@ -32,6 +36,23 @@ builder.Services.AddStackExchangeRedisCache(cfg =>
 builder.Services.AddScoped<IBasketRepository, BasketRepository>();
 builder.Services.Decorate<IBasketRepository, CachedBasketRepository>();
 
+//Grpc Services
+builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(opt =>
+{
+    opt.Address = new Uri(builder.Configuration["GrpcSettings:DiscountUrl"]);
+})
+.ConfigurePrimaryHttpMessageHandler(() =>
+{
+    var handler = new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback =
+        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    };
+
+    return handler;
+});
+
+//Cross-Cutting Services
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
 builder.Services.AddHealthChecks()
