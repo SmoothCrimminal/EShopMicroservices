@@ -6,7 +6,7 @@
         {
             return orders.Select(o => new OrderDto(
                 o.Id.Value,
-                o.CustomeId.Value,
+                o.CustomerId.Value,
                 o.OrderName.Value,
                 new AddressDto(
                     o.ShippingAddress.FirstName,
